@@ -50,6 +50,7 @@
     <string name="main_action_mode_delete_dialog_cancel">Cancel</string>
 
     <!-- Main activity: List and such -->
+    <string name="main_all_notifications">All notifications</string>
     <string name="main_item_status_text_one">%1$d notification</string>
     <string name="main_item_status_text_not_one">%1$d notifications</string>
     <string name="main_item_status_reconnecting">reconnecting …</string>

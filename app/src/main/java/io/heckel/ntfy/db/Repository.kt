@@ -18,6 +18,7 @@ class Repository(private val sharedPrefs: SharedPreferences, private val databas
 
     private val connectionStates = ConcurrentHashMap<Long, ConnectionState>()
     private val connectionStatesLiveData = MutableLiveData(connectionStates)
+    val detailViewAll = false
     val detailViewSubscriptionId = AtomicLong(0L) // Omg, what a hack ...
 
     init {
@@ -94,6 +95,10 @@ class Repository(private val sharedPrefs: SharedPreferences, private val databas
 
     fun getNotificationsLiveData(subscriptionId: Long): LiveData<List<Notification>> {
         return notificationDao.listFlow(subscriptionId).asLiveData()
+    }
+
+    fun getAllNotificationsLiveData(): LiveData<List<Notification>> {
+        return notificationDao.listAllFlow().asLiveData()
     }
 
     fun clearAllNotificationIds(subscriptionId: Long) {

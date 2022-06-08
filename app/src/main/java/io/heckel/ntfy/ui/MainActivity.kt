@@ -14,12 +14,14 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.work.*
@@ -98,6 +100,13 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         val onSubscriptionLongClick = { s: Subscription -> onSubscriptionItemLongClick(s) }
 
         mainList = findViewById(R.id.main_subscriptions_list)
+        mainList.addItemDecoration(
+            DividerItemDecoration(
+                baseContext,
+                LinearLayout.VERTICAL
+            )
+        )
+
         adapter = MainAdapter(repository, onSubscriptionClick, onSubscriptionLongClick)
         mainList.adapter = adapter
 

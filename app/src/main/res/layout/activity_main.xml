@@ -148,6 +148,38 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/main_all_notifications_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:orientation="horizontal" android:clickable="true"
+        android:focusable="true" android:paddingEnd="18dp"
+        android:paddingStart="18dp"
+        app:layout_constraintTop_toBottomOf="@id/main_banner_json_stream">
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp" app:srcCompat="@drawable/ic_sms_gray_24dp"
+            android:id="@+id/main_all_notifications_image" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="17dp" android:scaleType="fitStart"/>
+        <TextView
+            android:text="@string/main_all_notifications"
+            android:layout_width="0dp"
+            android:layout_height="0dp" android:id="@+id/main_all_notifications_text"
+            app:layout_constraintTop_toTopOf="@+id/main_all_notifications_image"
+            app:layout_constraintBottom_toBottomOf="@+id/main_all_notifications_image"
+            android:layout_marginStart="12dp"
+            app:layout_constraintStart_toEndOf="@+id/main_all_notifications_image"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textColor="?android:attr/textColorPrimary"
+            android:gravity="center_vertical"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/main_subscriptions_list_container"
             android:layout_width="match_parent"
@@ -155,7 +187,7 @@
             android:visibility="visible"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/main_banner_json_stream">
+            app:layout_constraintTop_toBottomOf="@id/main_all_notifications_container">
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/main_subscriptions_list"
                 android:layout_width="match_parent"

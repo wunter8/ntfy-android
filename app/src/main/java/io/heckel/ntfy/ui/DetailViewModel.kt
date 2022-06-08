@@ -10,8 +10,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class DetailViewModel(private val repository: Repository) : ViewModel() {
-    fun list(subscriptionId: Long): LiveData<List<Notification>> {
-        return repository.getNotificationsLiveData(subscriptionId)
+    fun list(subscriptionId: Long?): LiveData<List<Notification>> {
+        if (subscriptionId != null) {
+            return repository.getNotificationsLiveData(subscriptionId)
+        } else {
+            return repository.getAllNotificationsLiveData()
+        }
     }
 
     fun markAsDeleted(notificationId: String) = viewModelScope.launch(Dispatchers.IO) {
