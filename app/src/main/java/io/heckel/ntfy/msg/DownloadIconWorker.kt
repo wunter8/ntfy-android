@@ -2,15 +2,10 @@ package io.heckel.ntfy.msg
 
 import android.content.Context
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
-import android.webkit.MimeTypeMap
-import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import io.heckel.ntfy.BuildConfig
-import io.heckel.ntfy.R
 import io.heckel.ntfy.app.Application
 import io.heckel.ntfy.db.*
 import io.heckel.ntfy.util.Log
@@ -46,16 +41,14 @@ class DownloadIconWorker(private val context: Context, params: WorkerParameters)
         icon = notification.icon ?: return Result.failure()
         try {
             val iconFile = createIconFile(icon)
-            val yesterdayTimestamp = Date().time - 1000*60*60*24 // now Unix timestamp - 24 hours
+            val yesterdayTimestamp = Date().time - MAX_CACHE_MILLIS
             if (!iconFile.exists() || iconFile.lastModified() < yesterdayTimestamp) {
                 downloadIcon(iconFile)
             } else {
-                Log.d(TAG, "Loading icon from cache: ${icon.url}")
+                Log.d(TAG, "Loading icon from cache: $iconFile")
                 val iconUri = createIconUri(iconFile)
                 this.uri = iconUri // Required for cleanup in onStopped()
-                save(icon.copy(
-                    contentUri = iconUri.toString()
-                ))
+                save(icon.copy(contentUri = iconUri.toString()))
             }
         } catch (e: Exception) {
             failed(e)
@@ -70,18 +63,16 @@ class DownloadIconWorker(private val context: Context, params: WorkerParameters)
 
     private fun downloadIcon(iconFile: File) {
         Log.d(TAG, "Downloading icon from ${icon.url}")
-
         try {
             val request = Request.Builder()
                 .url(icon.url)
                 .addHeader("User-Agent", ApiService.USER_AGENT)
                 .build()
             client.newCall(request).execute().use { response ->
-                Log.d(TAG, "Download: headers received: $response")
+                Log.d(TAG, "Headers received: $response, Content-Length: ${response.headers["Content-Length"]}")
                 if (!response.isSuccessful || response.body == null) {
                     throw Exception("Unexpected response: ${response.code}")
-                }
-                if (shouldAbortDownload(response)) {
+                } else if (shouldAbortDownload(response)) {
                     Log.d(TAG, "Aborting download: Content-Length is larger than auto-download setting")
                     return
                 }
@@ -98,7 +89,7 @@ class DownloadIconWorker(private val context: Context, params: WorkerParameters)
                     val buffer = ByteArray(BUFFER_SIZE)
                     var bytes = fileIn.read(buffer)
                     while (bytes >= 0) {
-                        if (downloadLimit != null && bytesCopied > downloadLimit) {
+                        if (bytesCopied > downloadLimit) {
                             throw Exception("Icon is longer than max download size.")
                         }
                         fileOut.write(buffer, 0, bytes)
@@ -107,9 +98,7 @@ class DownloadIconWorker(private val context: Context, params: WorkerParameters)
                     }
                 }
                 Log.d(TAG, "Icon download: successful response, proceeding with download")
-                save(icon.copy(
-                    contentUri = uri.toString()
-                ))
+                save(icon.copy(contentUri = uri.toString()))
             }
         } catch (e: Exception) {
             failed(e)
@@ -146,9 +135,9 @@ class DownloadIconWorker(private val context: Context, params: WorkerParameters)
 
     private fun getDownloadLimit(): Long {
         return if (repository.getAutoDownloadMaxSize() != Repository.AUTO_DOWNLOAD_NEVER && repository.getAutoDownloadMaxSize() != Repository.AUTO_DOWNLOAD_ALWAYS) {
-            repository.getAutoDownloadMaxSize()
+            Math.min(repository.getAutoDownloadMaxSize(), MAX_ICON_DOWNLOAD_BYTES)
         } else {
-            MAX_ICON_DOWNLOAD_SIZE.toLong()
+            DEFAULT_MAX_ICON_DOWNLOAD_BYTES
         }
     }
 
@@ -168,10 +157,12 @@ class DownloadIconWorker(private val context: Context, params: WorkerParameters)
     companion object {
         const val INPUT_DATA_ID = "id"
         const val FILE_PROVIDER_AUTHORITY = BuildConfig.APPLICATION_ID + ".provider" // See AndroidManifest.xml
-        const val MAX_ICON_DOWNLOAD_SIZE = 300000
+        const val DEFAULT_MAX_ICON_DOWNLOAD_BYTES = 307_200L // 300 KB
+        const val MAX_ICON_DOWNLOAD_BYTES = 5_242_880L // 5 MB
+        const val MAX_CACHE_MILLIS = 1000*60*60*24 // 24 hours
+        const val ICON_CACHE_DIR = "icons"
 
         private const val TAG = "NtfyIconDownload"
-        const val ICON_CACHE_DIR = "icons"
         private const val BUFFER_SIZE = 8 * 1024
     }
 }
